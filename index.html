@@ -19,6 +19,7 @@
             <nav class="nav-links">
                 <button class="nav-btn active" data-page="sales">إضافة عملية شراء</button>
                 <button class="nav-btn" data-page="debts">الديون</button>
+                <button class="nav-btn" data-page="tracking">التتبع والتقارير</button>
             </nav>
         </aside>
 
@@ -26,33 +27,19 @@
             <header class="topbar">
                 <div>
                     <h1 id="pageTitle">إضافة عملية شراء</h1>
-
+                    <p id="pageSubtitle">سجل الشراء والزبون في خطوة واحدة</p>
                 </div>
             </header>
 
             <div id="messageBox"></div>
 
             <section class="page-section active" id="salesPage">
-                <div class="stats-grid compact-stats">
-                    <div class="stat-card">
-                        <span>عدد الزبائن</span>
-                        <strong id="customersCount">0</strong>
-                    </div>
-                    <div class="stat-card">
-                        <span>إجمالي الديون</span>
-                        <strong id="totalDebt">0.00 شيكل</strong>
-                    </div>
-                    <div class="stat-card">
-                        <span>إجمالي المبيعات</span>
-                        <strong id="totalSales">0.00 شيكل</strong>
-                    </div>
-                </div>
-
                 <div class="single-column">
                     <section class="card">
                         <div class="card-head">
                             <h2>تسجيل عملية شراء</h2>
                         </div>
+
                         <form id="purchaseForm" class="form-grid">
                             <label class="field">
                                 <span>اسم الزبون</span>
@@ -79,36 +66,13 @@
                                 <input type="number" id="paidNow" min="0" step="0.01" value="0" />
                             </label>
 
+                            <label class="field full-width">
+                                <span>ملاحظات</span>
+                                <input type="text" id="purchaseNote" placeholder="مثال: كرز، دخان خفيف، حساب سابق..." />
+                            </label>
+
                             <button type="submit" class="primary-btn big-btn">حفظ عملية الشراء</button>
                         </form>
-                    </section>
-
-                    <section class="card">
-                        <div class="card-head">
-                            <h2>آخر عمليات الشراء</h2>
-                        </div>
-
-                        <div class="page-search">
-                            <input type="text" id="salesSearchInput"
-                                placeholder="ابحث بالاسم أو رقم الجوال أو المنتج" />
-                        </div>
-
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>الزبون</th>
-                                        <th>الجوال</th>
-                                        <th>المنتج</th>
-                                        <th>السعر</th>
-                                        <th>المدفوع</th>
-                                        <th>المتبقي</th>
-                                        <th>التاريخ</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="salesTableBody"></tbody>
-                            </table>
-                        </div>
                     </section>
                 </div>
             </section>
@@ -170,6 +134,12 @@
                             <h2>سجل الديون والتسديدات</h2>
                         </div>
 
+                        <div class="search-bar-with-button">
+                            <input type="text" id="debtHistorySearchInput"
+                                placeholder="ابحث بالاسم أو رقم الجوال أو الملاحظة" />
+                            <button type="button" id="debtHistorySearchBtn" class="primary-btn search-btn">بحث</button>
+                        </div>
+
                         <div class="table-wrap">
                             <table>
                                 <thead>
@@ -182,6 +152,84 @@
                                     </tr>
                                 </thead>
                                 <tbody id="debtsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="page-section" id="trackingPage">
+                <div class="single-column">
+                    <section class="card">
+                        <div class="card-head card-head-space">
+                            <h2>تتبع المشتريات والديون</h2>
+                            <button type="button" id="applyDateFilter" class="primary-btn filter-btn">تحديث</button>
+                        </div>
+
+                        <div class="filter-grid">
+                            <label class="field">
+                                <span>الفترة</span>
+                                <select id="datePreset">
+                                    <option value="today">اليوم</option>
+                                    <option value="current_month" selected>الشهر الحالي</option>
+                                    <option value="custom">من تاريخ إلى تاريخ</option>
+                                </select>
+                            </label>
+
+                            <label class="field">
+                                <span>من تاريخ</span>
+                                <input type="date" id="startDate" />
+                            </label>
+
+                            <label class="field">
+                                <span>إلى تاريخ</span>
+                                <input type="date" id="endDate" />
+                            </label>
+                        </div>
+                    </section>
+
+                    <div class="stats-grid tracking-stats">
+                        <div class="stat-card stat-highlight">
+                            <span>مشتريات اليوم</span>
+                            <strong id="todayPurchasesValue">0.00 شيكل</strong>
+                        </div>
+                        <div class="stat-card stat-highlight">
+                            <span>ديون اليوم</span>
+                            <strong id="todayDebtsValue">0.00 شيكل</strong>
+                        </div>
+                        <div class="stat-card">
+                            <span>إجمالي المشتريات للفترة</span>
+                            <strong id="periodPurchasesValue">0.00 شيكل</strong>
+                        </div>
+                        <div class="stat-card">
+                            <span>إجمالي الديون للفترة</span>
+                            <strong id="periodDebtsValue">0.00 شيكل</strong>
+                        </div>
+                    </div>
+
+                    <section class="card">
+                        <div class="card-head">
+                            <h2>عمليات الفترة المحددة</h2>
+                        </div>
+
+                        <div class="page-search">
+                            <input type="text" id="trackingSearchInput"
+                                placeholder="ابحث بالاسم أو رقم الجوال أو المنتج" />
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>الزبون</th>
+                                        <th>الجوال</th>
+                                        <th>النوع</th>
+                                        <th>التفاصيل</th>
+                                        <th>المبلغ</th>
+                                        <th>التاريخ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="trackingTableBody"></tbody>
                             </table>
                         </div>
                     </section>
