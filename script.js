@@ -348,22 +348,39 @@ function applyOverride(customerId, debtDelta, purchasesDelta = 0) {
     debt:           Number(base.debt           || 0),
     totalPurchases: Number(base.totalPurchases || 0)
   };
+  const newDebt  = prev.debt           + debtDelta;
+  const newTotal = prev.totalPurchases + purchasesDelta;
+
   localOverrides.set(customerId, {
-    debt:           prev.debt           + debtDelta,
-    totalPurchases: prev.totalPurchases + purchasesDelta
+    debt:           newDebt,
+    totalPurchases: newTotal
   });
 
-  // أيضاً نحدّث customers في الذاكرة لضمان التوافق
+  // نحدّث customers في الذاكرة مباشرة — سواء زبون جديد أو موجود
   const idx = customers.findIndex(c => c.id === customerId);
   if (idx !== -1) {
     customers[idx] = {
       ...customers[idx],
-      debt:           prev.debt           + debtDelta,
-      totalPurchases: prev.totalPurchases + purchasesDelta
+      debt:           newDebt,
+      totalPurchases: newTotal
     };
-    // حفظ في IndexedDB
     idbPut(S_CUSTOMERS, customers[idx]).catch(console.error);
   }
+}
+
+// يُطبَّق بعد كل onSnapshot لمنع بيانات السيرفر القديمة من تلغي التحديثات المحلية
+function applyAllOverridesToCustomers() {
+  if (localOverrides.size === 0) return;
+  localOverrides.forEach((ov, customerId) => {
+    const idx = customers.findIndex(c => c.id === customerId);
+    if (idx !== -1) {
+      customers[idx] = {
+        ...customers[idx],
+        debt:           ov.debt,
+        totalPurchases: ov.totalPurchases
+      };
+    }
+  });
 }
 
 function addLocalTx(txData) {
@@ -616,15 +633,19 @@ purchaseForm.addEventListener('submit', async e => {
       customerId = existing.id;
     } else {
       customerId = generateLocalId();
+      // ⭐ نضيف الزبون مباشرة بالقيم الصحيحة بدل debt:0 ثم override
       const customerData = {
         id: customerId, name, phone,
-        debt: 0, totalPurchases: 0, createdAtClient
+        debt: debtAdded,
+        totalPurchases: total,
+        createdAtClient
       };
-      // حفظ محلي فوري
       customers.unshift(customerData);
+      // نسجّل override أيضاً لحمايته من onSnapshot
+      localOverrides.set(customerId, { debt: debtAdded, totalPurchases: total });
       idbPut(S_CUSTOMERS, customerData).catch(console.error);
 
-      // Firebase (يخزن في الكاش محلياً أوفلاين)
+      // Firebase
       const fsCustomer = { name, phone, debt: 0, totalPurchases: 0, createdAt: serverTimestamp(), createdAtClient };
       setDoc(doc(db, 'customers', customerId), fsCustomer).catch(() => {
         idbAddPending({ type: 'newCustomer', customerId, customerData: fsCustomer }).catch(console.error);
@@ -632,7 +653,10 @@ purchaseForm.addEventListener('submit', async e => {
     }
 
     // ── تسجيل المعاملة محلياً فوراً ─────────────────────────────────────
-    applyOverride(customerId, debtAdded, total);   // ⭐ يحمي من onSnapshot
+    // للزبون الموجود: نطبّق override — للزبون الجديد: Override سُجِّل أعلاه
+    if (existing) {
+      applyOverride(customerId, debtAdded, total);
+    }
     addLocalTx({
       id: clientOpId, clientOpId, customerId,
       itemName, price, paidNow, total, debtAdded,
@@ -783,9 +807,10 @@ onSnapshot(customersQuery,
     // حفظ في IndexedDB
     fromServer.forEach(c => idbPut(S_CUSTOMERS, c).catch(console.error));
 
-    // ⭐ هنا المفتاح: عند onSnapshot نطبّق الـ overrides فوق بيانات السيرفر
-    // لأن onSnapshot قد يجلب قيماً قديمة قبل وصول updateDoc للسيرفر
-    // الـ override يُزال فقط عند تأكيد Firebase (في then() أعلاه)
+    // ⭐ بعد دمج بيانات السيرفر، نعيد تطبيق الـ overrides المحلية
+    // لأن السيرفر قد يجلب debt=0 قبل أن تصله الـ updateDoc
+    applyAllOverridesToCustomers();
+
     refreshAll();
   },
   err => {
