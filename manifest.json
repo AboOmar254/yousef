@@ -1,0 +1,11 @@
+{
+  "name": "نظام كشك الدخان",
+  "short_name": "كشك الدخان",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#181411",
+  "theme_color": "#c47a2c",
+  "lang": "ar",
+  "dir": "rtl",
+  "icons": []
+}
