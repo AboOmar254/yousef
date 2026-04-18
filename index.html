@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>نظام كشك الدخان</title>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <div class="app-layout">
+        <aside class="sidebar">
+            <div class="brand">
+                <h2 class="brand-title">يوسف</h2>
+                <h3 class="brand-subtitle">للسجائر والدخان</h3>
+            </div>
+
+            <nav class="nav-links">
+                <button class="nav-btn active" data-page="sales">إضافة عملية شراء</button>
+                <button class="nav-btn" data-page="debts">الديون</button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div>
+                    <h1 id="pageTitle">إضافة عملية شراء</h1>
+
+                </div>
+            </header>
+
+            <div id="messageBox"></div>
+
+            <section class="page-section active" id="salesPage">
+                <div class="stats-grid compact-stats">
+                    <div class="stat-card">
+                        <span>عدد الزبائن</span>
+                        <strong id="customersCount">0</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span>إجمالي الديون</span>
+                        <strong id="totalDebt">0.00 شيكل</strong>
+                    </div>
+                    <div class="stat-card">
+                        <span>إجمالي المبيعات</span>
+                        <strong id="totalSales">0.00 شيكل</strong>
+                    </div>
+                </div>
+
+                <div class="single-column">
+                    <section class="card">
+                        <div class="card-head">
+                            <h2>تسجيل عملية شراء</h2>
+                        </div>
+                        <form id="purchaseForm" class="form-grid">
+                            <label class="field">
+                                <span>اسم الزبون</span>
+                                <input type="text" id="purchaseCustomerName" required />
+                            </label>
+
+                            <label class="field">
+                                <span>رقم الجوال</span>
+                                <input type="text" id="purchaseCustomerPhone" required />
+                            </label>
+
+                            <label class="field">
+                                <span>اسم المنتج</span>
+                                <input type="text" id="itemName" required />
+                            </label>
+
+                            <label class="field">
+                                <span>السعر</span>
+                                <input type="number" id="price" min="0" step="0.01" required />
+                            </label>
+
+                            <label class="field">
+                                <span>المدفوع الآن</span>
+                                <input type="number" id="paidNow" min="0" step="0.01" value="0" />
+                            </label>
+
+                            <button type="submit" class="primary-btn big-btn">حفظ عملية الشراء</button>
+                        </form>
+                    </section>
+
+                    <section class="card">
+                        <div class="card-head">
+                            <h2>آخر عمليات الشراء</h2>
+                        </div>
+
+                        <div class="page-search">
+                            <input type="text" id="salesSearchInput"
+                                placeholder="ابحث بالاسم أو رقم الجوال أو المنتج" />
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>الزبون</th>
+                                        <th>الجوال</th>
+                                        <th>المنتج</th>
+                                        <th>السعر</th>
+                                        <th>المدفوع</th>
+                                        <th>المتبقي</th>
+                                        <th>التاريخ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salesTableBody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </section>
+
+            <section class="page-section" id="debtsPage">
+                <div class="single-column">
+                    <section class="card">
+                        <div class="card-head">
+                            <h2>تسجيل دفعة تسديد</h2>
+                        </div>
+
+                        <form id="paymentForm" class="form-grid">
+                            <label class="field">
+                                <span>الزبون</span>
+                                <select id="paymentCustomer" required></select>
+                            </label>
+
+                            <label class="field">
+                                <span>المبلغ</span>
+                                <input type="number" id="paymentAmount" min="0" step="0.01" required />
+                            </label>
+
+                            <label class="field">
+                                <span>ملاحظة</span>
+                                <input type="text" id="paymentNote" />
+                            </label>
+
+                            <button type="submit" class="primary-btn big-btn">حفظ الدفعة</button>
+                        </form>
+                    </section>
+
+                    <section class="card">
+                        <div class="card-head">
+                            <h2>الزبائن الذين عليهم ديون</h2>
+                        </div>
+
+                        <div class="page-search">
+                            <input type="text" id="debtsSearchInput" placeholder="ابحث بالاسم أو رقم الجوال" />
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>الاسم</th>
+                                        <th>الجوال</th>
+                                        <th>الدين الحالي</th>
+                                        <th>إجمالي المشتريات</th>
+                                        <th>إجراء</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="debtCustomersTableBody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <section class="card">
+                        <div class="card-head">
+                            <h2>سجل الديون والتسديدات</h2>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>الزبون</th>
+                                        <th>النوع</th>
+                                        <th>المبلغ</th>
+                                        <th>ملاحظة</th>
+                                        <th>التاريخ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="debtsTableBody"></tbody>
+                            </table>
+                        </div>
+                    </section>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>
