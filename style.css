@@ -39,9 +39,6 @@ select {
   font: inherit;
 }
 
-/* ════════════════════════════════════════════
-   LAYOUT
-════════════════════════════════════════════ */
 .app-layout {
   display: grid;
   grid-template-columns: 270px 1fr;
@@ -114,9 +111,6 @@ select {
   box-shadow: 0 10px 20px rgba(196, 122, 44, 0.22);
 }
 
-/* ════════════════════════════════════════════
-   MAIN
-════════════════════════════════════════════ */
 .main-content {
   padding: 28px;
 }
@@ -172,9 +166,6 @@ select {
   gap: 22px;
 }
 
-/* ════════════════════════════════════════════
-   CARDS & STATS
-════════════════════════════════════════════ */
 .stats-grid {
   display: grid;
   gap: 18px;
@@ -238,9 +229,6 @@ select {
   color: #ffe4c4;
 }
 
-/* ════════════════════════════════════════════
-   FORMS
-════════════════════════════════════════════ */
 .form-grid,
 .filter-grid {
   display: grid;
@@ -263,7 +251,6 @@ select {
   font-weight: 700;
 }
 
-/* font-size 16px على الأقل يمنع iOS من تكبير تلقائي عند focus */
 .field input,
 .field select,
 .page-search input,
@@ -275,11 +262,9 @@ select {
   padding: 15px 16px;
   border-radius: 18px;
   outline: none;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 600;
   transition: 0.2s ease;
-  /* يمنع iOS من تكبير الصفحة عند الكتابة */
-  touch-action: manipulation;
 }
 
 .field input:focus,
@@ -301,9 +286,6 @@ select {
   margin-bottom: 16px;
 }
 
-/* ════════════════════════════════════════════
-   BUTTONS
-════════════════════════════════════════════ */
 .primary-btn {
   border: none;
   border-radius: 18px;
@@ -314,7 +296,6 @@ select {
   padding: 15px 18px;
   font-size: 17px;
   transition: 0.2s ease;
-  touch-action: manipulation;
 }
 
 .primary-btn:hover {
@@ -361,27 +342,21 @@ select {
   padding: 10px 14px;
   font-size: 16px;
   transition: 0.2s ease;
-  touch-action: manipulation;
-  white-space: nowrap;
 }
 
 .pay-btn:hover {
   background: #2f5a40;
 }
 
-/* ════════════════════════════════════════════
-   TABLES
-════════════════════════════════════════════ */
 .table-wrap {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: auto;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 table {
   width: 100%;
-  min-width: 600px;
+  min-width: 860px;
   border-collapse: collapse;
   background: rgba(0, 0, 0, 0.08);
 }
@@ -409,344 +384,51 @@ td {
   font-weight: 600;
 }
 
-/* ════════════════════════════════════════════
-   TABLET — 1100px
-════════════════════════════════════════════ */
 @media (max-width: 1100px) {
   .tracking-stats,
   .filter-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .form-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 }
 
-/* ════════════════════════════════════════════
-   TABLET — 900px
-   الـ sidebar يتحول إلى شريط علوي أفقي
-════════════════════════════════════════════ */
 @media (max-width: 900px) {
   .app-layout {
     grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr;
   }
 
   .sidebar {
-    position: sticky;
-    top: 0;
+    position: static;
     height: auto;
-    padding: 12px 16px;
-    z-index: 100;
-    border-left: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    /* تأثير زجاج للشريط العلوي */
-    background: linear-gradient(180deg, rgba(15, 12, 10, 0.97) 0%, rgba(23, 18, 15, 0.97) 100%);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-  }
-
-  /* الـ brand والـ nav جنب بعض */
-  .sidebar > * {
-    display: flex;
-    align-items: center;
-  }
-
-  .brand {
-    margin-bottom: 0;
-    padding: 10px 18px;
-    border-radius: 14px;
-    display: inline-flex;
-    flex-direction: column;
-    align-items: flex-start;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  /* نخلي الـ sidebar محتواه بالعرض */
-  .sidebar {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .brand-title {
-    font-size: 20px;
-  }
-
-  .brand-subtitle {
-    font-size: 13px;
-    margin: 2px 0 0;
   }
 
   .nav-links {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    flex: 1;
-    flex-wrap: nowrap;
-  }
-
-  .nav-btn {
-    padding: 10px 16px;
-    border-radius: 14px;
-    font-size: 15px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-
-  .main-content {
-    padding: 16px;
+    grid-template-columns: 1fr;
   }
 
   .search-bar-with-button {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr;
   }
 }
 
-/* ════════════════════════════════════════════
-   MOBILE — 600px
-════════════════════════════════════════════ */
 @media (max-width: 600px) {
-  /* ─── Typography ─── */
-  body {
-    font-size: 15px;
-    line-height: 1.6;
-  }
-
-  .topbar {
-    margin-bottom: 14px;
+  .main-content {
+    padding: 14px;
   }
 
   .topbar h1 {
-    font-size: 22px;
-    margin-bottom: 4px;
-  }
-
-  .topbar p {
-    font-size: 13px;
-  }
-
-  /* ─── Sidebar / Nav ─── */
-  .sidebar {
-    padding: 10px 12px;
-    gap: 10px;
-  }
-
-  .brand {
-    padding: 8px 12px;
-  }
-
-  .brand-title {
-    font-size: 17px;
-  }
-
-  .brand-subtitle {
-    display: none; /* نخفيه على الموبايل لتوفير المساحة */
-  }
-
-  .nav-btn {
-    padding: 9px 13px;
-    font-size: 14px;
-    border-radius: 12px;
-  }
-
-  /* ─── Cards ─── */
-  .card {
-    padding: 14px;
-    border-radius: 16px;
-  }
-
-  .card-head {
-    margin-bottom: 12px;
+    font-size: 30px;
   }
 
   .card-head h2 {
-    font-size: 17px;
+    font-size: 22px;
   }
 
-  .single-column {
-    gap: 14px;
-  }
-
-  /* ─── Stats ─── */
-  .tracking-stats {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-  }
-
-  .stat-card {
-    padding: 14px;
-    border-radius: 16px;
-  }
-
-  .stat-card span {
-    font-size: 12px;
-    margin-bottom: 6px;
-  }
-
-  .stat-card strong {
-    font-size: 20px;
-  }
-
-  /* ─── Forms ─── */
-  .form-grid,
-  .filter-grid {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
-  .field span {
-    font-size: 14px;
-  }
-
-  /* ⭐ 16px يمنع iOS zoom — لا تنزل عنه أبداً */
-  .field input,
-  .field select,
-  .page-search input,
-  .search-bar-with-button input {
-    font-size: 16px;
-    padding: 13px 14px;
-    border-radius: 14px;
-  }
-
-  .primary-btn {
-    font-size: 16px;
-    padding: 13px 16px;
-    border-radius: 14px;
-  }
-
-  .pay-btn {
-    font-size: 14px;
-    padding: 9px 12px;
-    border-radius: 11px;
-  }
-
-  .search-bar-with-button {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  /* ─── Message box ─── */
-  .message {
-    font-size: 14px;
-    padding: 12px 14px;
-    border-radius: 14px;
-  }
-
-  /* ─── Tables — بطاقات بدل جداول ─── */
-  /* نخفي الجدول ونبدّله ببطاقات card-style */
-  .table-wrap {
-    border-radius: 14px;
-    border: none;
-    overflow: visible;
-  }
-
-  table {
-    min-width: unset;
-    width: 100%;
-    display: block;
-  }
-
-  thead {
-    display: none; /* نخفي الـ headers */
-  }
-
-  tbody {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  tr {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px 10px;
-    background: linear-gradient(180deg, var(--card) 0%, var(--card-2) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 14px;
-    padding: 12px;
-  }
-
-  /* الخلية الأولى تأخذ العرض الكامل (الاسم/الزبون) */
-  tr td:first-child {
-    grid-column: 1 / -1;
-    font-size: 15px;
-    font-weight: 800;
-    color: #ffd8ab;
-    padding: 0 0 6px;
-    border-bottom: 1px solid rgba(255,255,255,0.07);
-    margin-bottom: 4px;
-  }
-
+  th,
   td {
-    padding: 3px 0;
-    font-size: 13px;
-    border-bottom: none;
-    color: #ddd4cc;
-    font-weight: 600;
-  }
-
-  /* الخلية الأخيرة (زر التسديد أو التاريخ) */
-  tr td:last-child {
-    grid-column: 1 / -1;
-    padding-top: 8px;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    margin-top: 4px;
-  }
-
-  /* إعادة padding لزر تسديد */
-  tr td:last-child .pay-btn {
-    width: 100%;
-    padding: 11px;
     font-size: 15px;
-  }
-
-  /* ─── Card-head-space على الموبايل ─── */
-  .card-head-space {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .filter-btn {
-    width: 100%;
-    text-align: center;
-  }
-
-  /* ─── Main content ─── */
-  .main-content {
-    padding: 10px 10px 80px; /* padding سفلي لمنع الـ indicator يغطي المحتوى */
-  }
-}
-
-/* ════════════════════════════════════════════
-   MOBILE صغير جداً — 380px
-════════════════════════════════════════════ */
-@media (max-width: 380px) {
-  .brand-title {
-    font-size: 15px;
-  }
-
-  .nav-btn {
-    font-size: 13px;
-    padding: 8px 10px;
-  }
-
-  .topbar h1 {
-    font-size: 19px;
-  }
-
-  .stat-card strong {
-    font-size: 17px;
-  }
-
-  tr {
-    grid-template-columns: 1fr;
   }
 }

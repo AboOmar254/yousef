@@ -42,7 +42,10 @@ let _idb = null;
 
 function openIDB() {
   return new Promise((res, rej) => {
-    if (_idb) { res(_idb); return; }
+    if (_idb) {
+      res(_idb);
+      return;
+    }
     const req = indexedDB.open(IDB_NAME, IDB_VERSION);
     req.onupgradeneeded = e => {
       const d = e.target.result;
@@ -50,7 +53,10 @@ function openIDB() {
       if (!d.objectStoreNames.contains(S_TRANSACTIONS)) d.createObjectStore(S_TRANSACTIONS, { keyPath: 'id' });
       if (!d.objectStoreNames.contains(S_PENDING)) d.createObjectStore(S_PENDING, { keyPath: 'id', autoIncrement: true });
     };
-    req.onsuccess = e => { _idb = e.target.result; res(_idb); };
+    req.onsuccess = e => {
+      _idb = e.target.result;
+      res(_idb);
+    };
     req.onerror = e => rej(e.target.error);
   });
 }
@@ -98,7 +104,6 @@ async function idbDeletePending(id) {
 let customers = [];
 let transactions = [];
 const localOverrides = new Map();
-const localTransactionIds = new Set();
 
 let isSavingPurchase = false;
 let isSavingPayment = false;
@@ -214,11 +219,7 @@ async function syncPending() {
 
 async function loadLocalData() {
   try {
-    const [c, t] = await Promise.all([
-      idbGetAll(S_CUSTOMERS),
-      idbGetAll(S_TRANSACTIONS)
-    ]);
-
+    const [c, t] = await Promise.all([idbGetAll(S_CUSTOMERS), idbGetAll(S_TRANSACTIONS)]);
     if (c.length) customers = c;
     if (t.length) transactions = mergeNoDupes(t);
     refreshAll();
@@ -235,9 +236,7 @@ function generateLocalId() {
 }
 
 function generateOpId() {
-  return crypto.randomUUID
-    ? crypto.randomUUID()
-    : `op_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  return crypto.randomUUID ? crypto.randomUUID() : `op_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
 function showPage(page) {
@@ -272,14 +271,17 @@ function formatDate(tx) {
 }
 
 function normText(t = '') {
-  return String(t).toLowerCase().trim()
+  return String(t)
+    .toLowerCase()
+    .trim()
     .replace(/\s+/g, '')
     .replace(/[-()+]/g, '')
     .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
 }
 
 function normPhone(p = '') {
-  return String(p).trim()
+  return String(p)
+    .trim()
     .replace(/\s+/g, '')
     .replace(/[-()+]/g, '')
     .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
@@ -289,9 +291,32 @@ function getCustomerById(id) {
   return customers.find(c => c.id === id) || {};
 }
 
-function findByPhone(phone) {
+function findByPhone(phone = '') {
   const n = normPhone(phone);
-  return customers.find(c => normPhone(c.phone || '') === n);
+  if (!n) return null;
+  return customers.find(c => normPhone(c.phone || '') === n) || null;
+}
+
+function findExistingCustomer(name = '', phone = '') {
+  const cleanPhone = normPhone(phone);
+  const cleanName = normText(name);
+
+  if (cleanPhone) {
+    const byPhone = customers.find(c => normPhone(c.phone || '') === cleanPhone);
+    if (byPhone) return byPhone;
+  }
+
+  if (cleanName) {
+    const byNameWithoutPhone = customers.find(c => {
+      const customerName = normText(c.name || '');
+      const customerPhone = normPhone(c.phone || '');
+      return customerName === cleanName && !customerPhone;
+    });
+
+    if (byNameWithoutPhone) return byNameWithoutPhone;
+  }
+
+  return null;
 }
 
 function mergeNoDupes(list) {
@@ -382,7 +407,6 @@ function applyAllOverridesToCustomers() {
 
 function addLocalTx(txData) {
   const id = txData.clientOpId || txData.id;
-  localTransactionIds.add(id);
   transactions = mergeNoDupes([{ ...txData, id }, ...transactions]);
   idbPut(S_TRANSACTIONS, { ...txData, id }).catch(console.error);
 }
@@ -409,9 +433,8 @@ function populatePaymentSelect() {
     .sort((a, b) => Number(b.debt) - Number(a.debt));
 
   paymentCustomer.innerHTML = ['<option value="">اختر الزبون</option>']
-    .concat(list.map(c =>
-      `<option value="${c.id}">${c.name} - ${c.phone} - ${formatMoney(c.debt)}</option>`
-    )).join('');
+    .concat(list.map(c => `<option value="${c.id}">${c.name} - ${c.phone || '-'} - ${formatMoney(c.debt)}</option>`))
+    .join('');
 }
 
 function renderDebtCustomers() {
@@ -421,9 +444,7 @@ function renderDebtCustomers() {
     .map(getCustomerWithOverride)
     .filter(c => {
       if (Number(c.debt || 0) <= 0) return false;
-      return !term ||
-        normText(c.name || '').includes(term) ||
-        normText(c.phone || '').includes(term);
+      return !term || normText(c.name || '').includes(term) || normText(c.phone || '').includes(term);
     })
     .sort((a, b) => Number(b.debt) - Number(a.debt));
 
@@ -435,7 +456,7 @@ function renderDebtCustomers() {
   debtCustomersTableBody.innerHTML = list.map(c => `
     <tr>
       <td>${c.name || ''}</td>
-      <td>${c.phone || ''}</td>
+      <td>${c.phone || '-'}</td>
       <td>${formatMoney(c.debt)}</td>
       <td>${formatMoney(c.totalPurchases || 0)}</td>
       <td><button class="pay-btn quick-pay-btn" data-id="${c.id}">تسديد</button></td>
@@ -458,14 +479,9 @@ function renderDebtHistory() {
   const list = transactions.filter(t => {
     if (!(t.type === 'payment' || (t.type === 'purchase' && Number(t.debtAdded || 0) > 0))) return false;
     const c = getCustomerById(t.customerId);
-    const noteTxt = t.type === 'payment'
-      ? (t.note || '')
-      : `${t.itemName || ''} ${t.note || ''}`;
+    const noteTxt = t.type === 'payment' ? (t.note || '') : `${t.itemName || ''} ${t.note || ''}`;
 
-    return !term ||
-      normText(c.name || '').includes(term) ||
-      normText(c.phone || '').includes(term) ||
-      normText(noteTxt).includes(term);
+    return !term || normText(c.name || '').includes(term) || normText(c.phone || '').includes(term) || normText(noteTxt).includes(term);
   });
 
   if (!list.length) {
@@ -477,9 +493,7 @@ function renderDebtHistory() {
     const c = getCustomerById(t.customerId);
     const label = t.type === 'payment' ? 'تسديد' : 'دين ناتج عن شراء';
     const amount = t.type === 'payment' ? t.amount : t.debtAdded;
-    const note = t.type === 'payment'
-      ? (t.note || '-')
-      : `${t.itemName || '-'}${t.note ? ' - ' + t.note : ''}`;
+    const note = t.type === 'payment' ? (t.note || '-') : `${t.itemName || '-'}${t.note ? ' - ' + t.note : ''}`;
 
     return `
       <tr>
@@ -546,19 +560,11 @@ function renderTracking() {
     const filtered = transactions.filter(t => {
       if (!inRange(t, range)) return false;
       const c = getCustomerById(t.customerId);
-      return !term ||
-        normText(c.name || '').includes(term) ||
-        normText(c.phone || '').includes(term) ||
-        normText(`${t.itemName || ''} ${t.note || ''}`).includes(term);
+      return !term || normText(c.name || '').includes(term) || normText(c.phone || '').includes(term) || normText(`${t.itemName || ''} ${t.note || ''}`).includes(term);
     });
 
-    const sumPurchases = filtered
-      .filter(t => t.type === 'purchase')
-      .reduce((s, t) => s + Number(t.total || 0), 0);
-
-    const sumDebts = filtered
-      .filter(t => t.type === 'purchase')
-      .reduce((s, t) => s + Number(t.debtAdded || 0), 0);
+    const sumPurchases = filtered.filter(t => t.type === 'purchase').reduce((s, t) => s + Number(t.total || 0), 0);
+    const sumDebts = filtered.filter(t => t.type === 'purchase').reduce((s, t) => s + Number(t.debtAdded || 0), 0);
 
     periodPurchasesValue.textContent = formatMoney(sumPurchases);
     periodDebtsValue.textContent = formatMoney(sumDebts);
@@ -580,13 +586,8 @@ function renderTracking() {
       : `<tr><td colspan="6">لا توجد عمليات ضمن هذه الفترة.</td></tr>`;
   }
 
-  const tp = transactions
-    .filter(t => t.type === 'purchase' && inRange(t, today))
-    .reduce((s, t) => s + Number(t.total || 0), 0);
-
-  const td = transactions
-    .filter(t => t.type === 'purchase' && inRange(t, today))
-    .reduce((s, t) => s + Number(t.debtAdded || 0), 0);
+  const tp = transactions.filter(t => t.type === 'purchase' && inRange(t, today)).reduce((s, t) => s + Number(t.total || 0), 0);
+  const td = transactions.filter(t => t.type === 'purchase' && inRange(t, today)).reduce((s, t) => s + Number(t.debtAdded || 0), 0);
 
   todayPurchasesValue.textContent = formatMoney(tp);
   todayDebtsValue.textContent = formatMoney(td);
@@ -610,8 +611,14 @@ datePreset.addEventListener('change', () => {
 });
 
 applyDateFilterBtn.addEventListener('click', renderTracking);
-startDateInput.addEventListener('change', () => { datePreset.value = 'custom'; renderTracking(); });
-endDateInput.addEventListener('change', () => { datePreset.value = 'custom'; renderTracking(); });
+startDateInput.addEventListener('change', () => {
+  datePreset.value = 'custom';
+  renderTracking();
+});
+endDateInput.addEventListener('change', () => {
+  datePreset.value = 'custom';
+  renderTracking();
+});
 
 purchaseForm.addEventListener('submit', async e => {
   e.preventDefault();
@@ -631,7 +638,7 @@ purchaseForm.addEventListener('submit', async e => {
   const createdAtClient = Date.now();
   const clientOpId = generateOpId();
 
-  if (!name || !phone || !itemName || price <= 0) {
+  if (!name || !itemName || price <= 0) {
     showMessage('أدخل بيانات الشراء بشكل صحيح.');
     isSavingPurchase = false;
     setBtn(purchaseSubmitBtn, false, 'جارٍ الحفظ...', 'حفظ عملية الشراء');
@@ -640,10 +647,47 @@ purchaseForm.addEventListener('submit', async e => {
 
   try {
     let customerId;
-    const existing = findByPhone(phone);
+    const existing = findExistingCustomer(name, phone);
 
     if (existing) {
       customerId = existing.id;
+
+      if (!existing.phone && phone) {
+        const idx = customers.findIndex(c => c.id === customerId);
+        if (idx !== -1) {
+          customers[idx] = {
+            ...customers[idx],
+            phone
+          };
+          idbPut(S_CUSTOMERS, customers[idx]).catch(console.error);
+
+          setDoc(
+            doc(db, 'customers', customerId),
+            {
+              name: customers[idx].name,
+              phone,
+              debt: Number(customers[idx].debt || 0),
+              totalPurchases: Number(customers[idx].totalPurchases || 0),
+              createdAtClient: customers[idx].createdAtClient || Date.now(),
+              createdAt: customers[idx].createdAt || serverTimestamp()
+            },
+            { merge: true }
+          ).catch(() => {
+            idbAddPending({
+              type: 'newCustomer',
+              customerId,
+              customerData: {
+                name: customers[idx].name,
+                phone,
+                debt: Number(customers[idx].debt || 0),
+                totalPurchases: Number(customers[idx].totalPurchases || 0),
+                createdAtClient: customers[idx].createdAtClient || Date.now(),
+                createdAt: serverTimestamp()
+              }
+            }).catch(console.error);
+          });
+        }
+      }
     } else {
       customerId = generateLocalId();
       const customerData = {
@@ -710,12 +754,10 @@ purchaseForm.addEventListener('submit', async e => {
     };
 
     setDoc(doc(db, 'transactions', clientOpId), txFs)
-      .then(() =>
-        updateDoc(doc(db, 'customers', customerId), {
-          debt: increment(debtAdded),
-          totalPurchases: increment(total)
-        })
-      )
+      .then(() => updateDoc(doc(db, 'customers', customerId), {
+        debt: increment(debtAdded),
+        totalPurchases: increment(total)
+      }))
       .catch(() => {
         idbAddPending({
           type: 'purchase',
@@ -793,11 +835,9 @@ paymentForm.addEventListener('submit', async e => {
     };
 
     setDoc(doc(db, 'transactions', clientOpId), txFs)
-      .then(() =>
-        updateDoc(doc(db, 'customers', customerId), {
-          debt: increment(-amount)
-        })
-      )
+      .then(() => updateDoc(doc(db, 'customers', customerId), {
+        debt: increment(-amount)
+      }))
       .catch(() => {
         idbAddPending({
           type: 'payment',
@@ -845,9 +885,7 @@ onSnapshot(
   snap => {
     const fromServer = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-    const localOnly = customers.filter(lc =>
-      !fromServer.some(sc => sc.id === lc.id)
-    );
+    const localOnly = customers.filter(lc => !fromServer.some(sc => sc.id === lc.id));
 
     customers = [...fromServer, ...localOnly];
     fromServer.forEach(c => idbPut(S_CUSTOMERS, c).catch(console.error));
